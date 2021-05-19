@@ -1,0 +1,428 @@
+<!DOCTYPE html> <html lang=zh-cn><!--
+ Page saved with SingleFile 
+ url: https://www.cnblogs.com/afei-li/articles/10643049.html 
+ saved date: Wed Mar 10 2021 11:07:12 GMT+0800 (中国标准时间)
+--><meta charset=utf-8>
+<meta name=viewport content="width=device-width, initial-scale=1.0">
+<meta name=referrer content=origin>
+<meta name=description content="最近有视频处理的需求，自己调研javaCV。 官网没有详细的API，各种轮子翻遍了也没找到几个有用的，以下是自己整理一些视频处理功能：截取视频指定帧生成gif，将图片旋转指定度，截取视频指定帧保存为指">
+<meta property=og:description content="最近有视频处理的需求，自己调研javaCV。 官网没有详细的API，各种轮子翻遍了也没找到几个有用的，以下是自己整理一些视频处理功能：截取视频指定帧生成gif，将图片旋转指定度，截取视频指定帧保存为指">
+<meta http-equiv=Cache-Control content=no-transform>
+<meta http-equiv=Cache-Control content=no-siteapp>
+<meta http-equiv=X-UA-Compatible content="IE=edge">
+<title>javaCV - 视频截帧，清晰度调整，转gif，视频转音频 - 阿飞L号 - 博客园</title>
+<style>.navbar{display:flex;flex-direction:column;align-items:center;padding-left:40px;padding-right:40px}input[type=button]{-webkit-appearance:button}pre{overflow:auto}.div_my_zzk{margin-top:5px;margin-bottom:5px}.input_my_zzk{vertical-align:middle;height:20px}input.btn_my_zzk{vertical-align:middle;height:22px;font-size:12px;padding-left:5px;padding-right:5px}pre{margin-top:0;margin-bottom:0}#profile_block{margin-top:5px;line-height:1.5;text-align:left}#cnblogs_post_body{margin-bottom:20px}input::-moz-focus-inner{border:0;padding:0}.CalTitle{width:100%}#cnblogs_post_body{word-break:break-word}#cnblogs_post_body p{margin:10px auto;text-indent:0}.vertical-middle>*{vertical-align:middle}#blog-news{overflow:hidden}.clear{clear:both}@-webkit-keyframes ui-dialog-loading{0%{-webkit-transform:rotate(0deg)}100%{-webkit-transform:rotate(360deg)}}@keyframes ui-dialog-loading{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}body{font-size:13px;font-family:Verdana,Geneva,Arial,Helvetica,sans-serif;margin:0;word-wrap:break-word;background:#28557e url(data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEBLAEsAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAeA8sDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD2ZqhepmqF6hjIW61E1St1qJqkCJqr3H/HvJ/uH+VWGqvcf8e8n+4f5VLGZsHUVow1nQdRWjDSQFxakFRrUgqwHinCminCgB4p4pgp4piHinimCnimgHinCminCmA8dacKaOtOFADhS0gpaYBRRRQIKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAClHWkpR1poDmPFX/H5p/wD1zm/9CirJtvvGtbxV/wAfmn/9c5v/AEKKsm2+8awluWXY+jVQn/rV+Po1UJ/60mIvt/x6r9DXh/xD/wCRyn/64p/WvcG/49V+hrw/4h/8jlP/ANcU/rWdXY9LKv46OWH+sX61sQfcFY4/1i/WtiD7gr2MD/CR5ud/7yycUUCiu08Y+mmqF6maoXrw2ewQt1qJqlbrUTVIETVXuP8Aj3k/3D/KrDVXuP8Aj3k/3D/KpYzNg6itGGs6DqK0YaSAuLUgqNakFWA8U4U0U4UAPFPFMFPFMQ8U8UwU8U0A8U4U0U4UwHjrThTR1pwoAcKWkFLTAKKKKBBRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUo60lKOtNAcx4q/4/NP/AOuc3/oUVZNt941reKv+PzT/APrnN/6FFWTbfeNYS3LLsfRqoT/1q/H0aqE/9aTEX2/49V+hrw/4h/8AI5T/APXFP617g3/Hqv0NeH/EP/kcp/8Arin9azq7HpZV/HRyw/1i/WtiD7grHH+sX61sQfcFexgf4SPNzv8A3lk4ooFFdp4x/9k=) repeat-y left}.navbar{padding-top:5px;padding-bottom:5px;background-color:#f5f5f3}#main{width:810px;padding-top:150px;left:60px;position:absolute}body.has-bannerbar #main{top:74px}h2{margin-top:10px;font-size:13px}#rightmenu{right:5px}#rightmenu h3{font-size:13px}#blog-calendar{margin-bottom:10px}p{margin:10px 0;line-height:1.5;font-size:13px}a{color:#369;text-decoration:none;background:transparent}a:link{color:#369;background:transparent}a:visited{color:#369;background:transparent}a:hover{color:#369;background:transparent;text-decoration:none}div.post{line-height:1.5;font-size:13px}div.post h2{border-bottom:1px solid #666}h2 a:link,h2 a:visited,h2 a:active{color:#00f;font-weight:normal}h2 a:hover{border:none;font-weight:bold;color:#00f}#rightmenu{position:absolute;width:250px;background-color:transparent;left:963px;color:#aaa;line-height:1.5}.has-bannerbar #rightmenu{top:104px}#rightmenu h3{font:bold 13px Verdana;margin:0;padding:5px;padding-bottom:0;background-color:transparent;border:none;color:#aaa;border-bottom:1px dashed #aaa}#rightmenu ul{list-style:none;margin:0;padding:2px;border:none;margin-bottom:5px;font-size:12px}#rightmenu a:link{color:#aaa;background:transparent}#rightmenu a:visited{color:#aaa;background:transparent}#rightmenu a:hover{color:#aaa;background:transparent}p.postfoot{font-size:11px}.Cal{border:1px solid #69a;width:100%;font-family:Arial;font-size:12px;margin-top:10px;height:150px;background-color:transparent;color:#aaa}.CalTitle{background-color:#28557c;border-color:#adf;font-family:Arial;font-size:13px;color:#aaa;border-bottom:1px solid #69a;margin-left:0;padding:0;height:100%}.CalOtherMonthDay{color:#808080}.CalTodayDay{color:#f00}.input_my_zzk{background-color:Transparent;border:1px solid #ebebeb;width:120px;padding:2px 5px}.btn_my_zzk{color:#aaa;border:1px solid #ebebeb}</style>
+<style media="only screen and (max-width: 767px)">body{font-size:14px!important;-webkit-text-size-adjust:none}.forpc{display:none!important}#blog_nav_rss{display:none!important}#blog_nav_newpost{display:none!important}#sidebar_search_box input[type=text]{width:260px}.navbar{display:none}body{background-position-x:-45px}#main{width:auto;position:static;padding:0 10px}#rightmenu{position:static;width:auto;color:#000}#rightmenu a:link,#rightmenu a:visited{color:#000}#rightmenu h3{color:#000}</style>
+<link type=application/rss+xml rel=alternate href=https://www.cnblogs.com/afei-li/rss>
+<link type=application/rsd+xml rel=EditURI href=https://www.cnblogs.com/afei-li/rsd.xml>
+<link type=application/wlwmanifest+xml rel=wlwmanifest href=https://www.cnblogs.com/afei-li/wlwmanifest.xml>
+<link id=favicon rel="shortcut icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGNsaXBQYXRoIGlkPSJwcmVmaXhfX2NsaXAtcGF0aCI+PHBhdGggY2xhc3M9InByZWZpeF9fY2xzLTEiIGQ9Ik0yOS40OCAyNS4yNGMtLjE2LTEuODktLjA4LTEuNS0uMjQtMy4xNmE3Mi4yNCA3Mi4yNCAwIDAwLTItMTAuMzdMMjYgNi4yNWwtMi42IDUuNDEtLjQ0Ljg5cS0uMjQuNDgtLjU0IDFhMjAuNDMgMjAuNDMgMCAwMS0xLjI0IDEuODQgMjAuMDggMjAuMDggMCAwMS0zLjA4IDMuMjQgMTkuNzIgMTkuNzIgMCAwMS0zLjg3IDIuNTNjLS43Mi4zMy0xLjQ1LjcxLTIuMjMgMS0uMzQuMTQtMS4xOS40NC0xLjkzLjY2YTIuNTUgMi41NSAwIDAxLTEuMDctLjNjLS4zNC0xLS44My0yLjI0LTEuMi0zLjE5LS41LTEuMjUtMS0yLjUtMS41MS0zLjczYTU5LjExIDU5LjExIDAgMDAtMy42Mi03LjI1IDU5LjgyIDU5LjgyIDAgMDAxLjUxIDcuOTRjLjMgMS4zLjcgMi41OCAxLjA1IDMuODdTNiAyMi43MSA2LjQ0IDI0YTEuNCAxLjQgMCAwMDEuMjkuOTNjMS4yOCAwIDIuNTcuMDYgMy44Ni4wNXMyLjU5IDAgMy44OC0uMTFhNTYgNTYgMCAwMDcuNzktLjg3Yy0xLjkyLS40OS03LjUtLjgxLTEwLjc5LTEuMDZhNDMgNDMgMCAwMDYuNTMtMS43IDI0LjA2IDI0LjA2IDAgMDA1LjM4LTMuNDVjLjcxLS42MiAxLjIxIDEuODggMi4zOSA1LjI3LjYyIDEuNjkuMzQgMSAxIDIuNjZzMS4zNyA0LjM4IDIuMTcgNmMtLjA3LTEuODItLjMxLTQuNjctLjQ2LTYuNDh6Ii8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9InByZWZpeF9fY2xpcC1wYXRoLTIiPjxwYXRoIGNsYXNzPSJwcmVmaXhfX2Nscy0xIiBkPSJNMjAuOTIgMy40NmE0LjI1IDQuMjUgMCAwMS4zMSA1Ljg2IDMuOTEgMy45MSAwIDAxLTUuNjYuMjQgNC4yNSA0LjI1IDAgMDEtLjMxLTUuODYgMy45MSAzLjkxIDAgMDE1LjY2LS4yNG0xLjM1LTEuNTRhNS44OSA1Ljg5IDAgMDAtOC41My4zNiA2LjQxIDYuNDEgMCAwMC40OCA4LjgzIDUuOTEgNS45MSAwIDAwOC41My0uMzYgNi40MSA2LjQxIDAgMDAtLjQ4LTguODN6Ii8+PC9jbGlwUGF0aD48c3R5bGU+LnByZWZpeF9fY2xzLTF7ZmlsbDojM2UzYTM5fUBtZWRpYSAocHJlZmVycy1jb2xvci1zY2hlbWU6ZGFyayl7LnByZWZpeF9fY2xzLTF7ZmlsbDojZWZlZmVmfX08L3N0eWxlPjwvZGVmcz48ZyBzdHlsZT0iaXNvbGF0aW9uOmlzb2xhdGUiPjxnIGlkPSJwcmVmaXhfX2xheWVyXzEiIGRhdGEtbmFtZT0ibGF5ZXIgMSI+PHBhdGggY2xhc3M9InByZWZpeF9fY2xzLTEiIGQ9Ik0yOS40OCAyNS4yNGMtLjE2LTEuODktLjA4LTEuNS0uMjQtMy4xNmE3Mi4yNCA3Mi4yNCAwIDAwLTItMTAuMzdMMjYgNi4yNWwtMi42IDUuNDEtLjQ0Ljg5cS0uMjQuNDgtLjU0IDFhMjAuNDMgMjAuNDMgMCAwMS0xLjI0IDEuODQgMjAuMDggMjAuMDggMCAwMS0zLjA4IDMuMjQgMTkuNzIgMTkuNzIgMCAwMS0zLjg3IDIuNTNjLS43Mi4zMy0xLjQ1LjcxLTIuMjMgMS0uMzQuMTQtMS4xOS40NC0xLjkzLjY2YTIuNTUgMi41NSAwIDAxLTEuMDctLjNjLS4zNC0xLS44My0yLjI0LTEuMi0zLjE5LS41LTEuMjUtMS0yLjUtMS41MS0zLjczYTU5LjExIDU5LjExIDAgMDAtMy42Mi03LjI1IDU5LjgyIDU5LjgyIDAgMDAxLjUxIDcuOTRjLjMgMS4zLjcgMi41OCAxLjA1IDMuODdTNiAyMi43MSA2LjQ0IDI0YTEuNCAxLjQgMCAwMDEuMjkuOTNjMS4yOCAwIDIuNTcuMDYgMy44Ni4wNXMyLjU5IDAgMy44OC0uMTFhNTYgNTYgMCAwMDcuNzktLjg3Yy0xLjkyLS40OS03LjUtLjgxLTEwLjc5LTEuMDZhNDMgNDMgMCAwMDYuNTMtMS43IDI0LjA2IDI0LjA2IDAgMDA1LjM4LTMuNDVjLjcxLS42MiAxLjIxIDEuODggMi4zOSA1LjI3LjYyIDEuNjkuMzQgMSAxIDIuNjZzMS4zNyA0LjM4IDIuMTcgNmMtLjA3LTEuODItLjMxLTQuNjctLjQ2LTYuNDh6Ii8+PGcgY2xpcC1wYXRoPSJ1cmwoI3ByZWZpeF9fY2xpcC1wYXRoKSI+PHBhdGggY2xhc3M9InByZWZpeF9fY2xzLTEiIGQ9Ik0tLjg3LS43OGgzNC40MnYzMy4wN0gtLjg3eiIvPjwvZz48cGF0aCBjbGFzcz0icHJlZml4X19jbHMtMSIgZD0iTTIwLjkyIDMuNDZhNC4yNSA0LjI1IDAgMDEuMzEgNS44NiAzLjkxIDMuOTEgMCAwMS01LjY2LjI0IDQuMjUgNC4yNSAwIDAxLS4zMS01Ljg2IDMuOTEgMy45MSAwIDAxNS42Ni0uMjRtMS4zNS0xLjU0YTUuODkgNS44OSAwIDAwLTguNTMuMzYgNi40MSA2LjQxIDAgMDAuNDggOC44MyA1LjkxIDUuOTEgMCAwMDguNTMtLjM2IDYuNDEgNi40MSAwIDAwLS40OC04LjgzeiIvPjxnIGNsaXAtcGF0aD0idXJsKCNwcmVmaXhfX2NsaXAtcGF0aC0yKSI+PHBhdGggY2xhc3M9InByZWZpeF9fY2xzLTEiIGQ9Ik0tLjg3LS43OGgzNC40MnYzMy4wN0gtLjg3eiIvPjwvZz48L2c+PC9nPjwvc3ZnPg==" type=image/svg+xml><style>.sf-hidden{display:none!important}</style><link rel=canonical href=https://www.cnblogs.com/afei-li/articles/10643049.html></head>
+<body class="has-navbar has-bannerbar">
+ <a name=top></a>
+ <a target=_blank href="https://developer.aliyun.com/learning/trainingcamp/sc/3?spm=a1z389.11499242.0.0.65452413ceQQ9r&amp;utm_content=g_1000250169" class=sf-hidden>
+ 
+ </a>
+ <div id=bannerbar class="bannerbar-mobile formobile sf-hidden">
+ 
+ </div>
+ <div id=top_nav class="navbar forpc">
+ <nav id=nav_main class="navbar-main sf-hidden">
+ 
+ 
+ </nav>
+ </div>
+ 
+ 
+<div id=header class=sf-hidden>
+</div>
+<div id=main>
+ <div id=post_detail>
+ <div class=post>
+ <h2>
+ 
+<a id=cb_post_title_url class="postTitle2 vertical-middle" href=https://www.cnblogs.com/afei-li/p/10643049.html>
+ <span>javaCV - 视频截帧，清晰度调整，转gif，视频转音频</span>
+ 
+</a>
+ </h2>
+ <div id=cnblogs_post_body class="blogpost-body blogpost-body-html">
+<p>　　最近有视频处理的需求，自己调研javaCV。</p>
+<p>　　官网没有详细的API，各种轮子翻遍了也没找到几个有用的，以下是自己整理一些视频处理功能：<span style=color:rgba(128,128,128,1);font-style:italic>截取视频指定帧生成gif，<span style=color:rgba(128,128,128,1);font-style:italic>将图片旋转指定度，<span style=color:rgba(128,128,128,1);font-style:italic>截取视频指定帧保存为指定格式的图片（图片保存在视频同文件夹下）<span style=color:rgba(128,128,128,1)>，<em>调整视频清晰度（只能降低）<span style=color:rgba(128,128,128,1)>，<span style=color:rgba(128,128,128,1)><em>视频转音频</em></span></span></em>。</span></span></span></span></p>
+<p>　　先上代码。</p>
+<pre><span style=color:rgba(0,0,128,1);font-weight:bold>package com.richinfo.media.utils;<br><br><span style=color:rgba(0,0,128,1);font-weight:bold>import com.madgag.gif.fmsware.AnimatedGifEncoder;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import org.bytedeco.javacv.FFmpegFrameGrabber;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import org.bytedeco.javacv.Frame;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import org.bytedeco.javacv.Java2DFrameConverter;<br><br><span style=color:rgba(0,0,128,1);font-weight:bold>import javax.imageio.ImageIO;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import java.awt.*;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import java.awt.image.BufferedImage;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import java.io.File;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import java.io.FileOutputStream;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import java.io.IOException;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import java.io.OutputStream;<br><br><span style=color:rgba(128,128,128,1);font-style:italic>/**<br><span style=color:rgba(128,128,128,1);font-style:italic> * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@author <span style=color:rgba(128,128,128,1);font-style:italic><br><span style=color:rgba(128,128,128,1);font-style:italic> */<br><span style=color:rgba(0,0,128,1);font-weight:bold>public class VideoUtils {<br><br>    <span style=color:rgba(128,128,128,1);font-style:italic>/**<br><span style=color:rgba(128,128,128,1);font-style:italic>     * 截取视频指定帧生成gif<br><span style=color:rgba(128,128,128,1);font-style:italic>     *<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@param <span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic>videofile  <span style=color:rgba(128,128,128,1);font-style:italic>视频文件<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@param <span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic>startFrame <span style=color:rgba(128,128,128,1);font-style:italic>开始帧<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@param <span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic>frameCount <span style=color:rgba(128,128,128,1);font-style:italic>截取帧数<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@param <span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic>frameRate  <span style=color:rgba(128,128,128,1);font-style:italic>帧频率（默认：3）<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@param <span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic>margin     <span style=color:rgba(128,128,128,1);font-style:italic>每截取一次跳过多少帧（默认：3）<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@throws <span style=color:rgba(128,128,128,1);font-style:italic>java.io.IOException 截取的长度超过视频长度<br><span style=color:rgba(128,128,128,1);font-style:italic>     */<br><span style=color:rgba(128,128,128,1);font-style:italic>    <span style=color:rgba(0,0,128,1);font-weight:bold>public static void buildGif(String videofile, <span style=color:rgba(0,0,128,1);font-weight:bold>int startFrame, <span style=color:rgba(0,0,128,1);font-weight:bold>int frameCount, Integer frameRate, Integer margin) <span style=color:rgba(0,0,128,1);font-weight:bold>throws IOException {<br>        <span style=color:rgba(0,0,128,1);font-weight:bold>if (margin == <span style=color:rgba(0,0,128,1);font-weight:bold>null) {<br>            margin = <span style=color:rgba(0,0,255,1)>3;<br>        }<br>        <span style=color:rgba(0,0,128,1);font-weight:bold>if (frameRate == <span style=color:rgba(0,0,128,1);font-weight:bold>null) {<br>            frameRate = <span style=color:rgba(0,0,255,1)>3;<br>        }<br>        FileOutputStream targetFile = <span style=color:rgba(0,0,128,1);font-weight:bold>new FileOutputStream(videofile.substring(<span style=color:rgba(0,0,255,1)>0, videofile.lastIndexOf(<span style=color:rgba(0,128,0,1);font-weight:bold>".")) + <span style=color:rgba(0,128,0,1);font-weight:bold>".gif");<br>        FFmpegFrameGrabber ff = <span style=color:rgba(0,0,128,1);font-weight:bold>new FFmpegFrameGrabber(videofile);<br>        Java2DFrameConverter converter = <span style=color:rgba(0,0,128,1);font-weight:bold>new Java2DFrameConverter();<br>        ff.start();<br>        <span style=color:rgba(0,0,128,1);font-weight:bold>try {<br>            <span style=color:rgba(0,0,128,1);font-weight:bold>if (startFrame &gt; ff.getLengthInFrames() &amp; (startFrame + frameCount) &gt; ff.getLengthInFrames()) {<br>                <span style=color:rgba(0,0,128,1);font-weight:bold>throw new RuntimeException(<span style=color:rgba(0,128,0,1);font-weight:bold>"视频太短了");<br>            }<br>            ff.setFrameNumber(startFrame);<br>            AnimatedGifEncoder en = <span style=color:rgba(0,0,128,1);font-weight:bold>new AnimatedGifEncoder();<br>            en.setFrameRate(frameRate);<br>            en.start(targetFile);<br>            <span style=color:rgba(0,0,128,1);font-weight:bold>for (<span style=color:rgba(0,0,128,1);font-weight:bold>int i = <span style=color:rgba(0,0,255,1)>0; i &lt; frameCount; i++) {<br>                en.addFrame(converter.convert(ff.grabImage()));<br>                ff.setFrameNumber(ff.getFrameNumber() + margin);<br>            }<br>            en.finish();<br>        } <span style=color:rgba(0,0,128,1);font-weight:bold>finally {<br>            ff.stop();<br>            ff.close();<br>        }<br>    }<br><br>    <span style=color:rgba(128,128,128,1);font-style:italic>/**<br><span style=color:rgba(128,128,128,1);font-style:italic>     * 将图片旋转指定度<br><span style=color:rgba(128,128,128,1);font-style:italic>     *<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@param <span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic>bufferedimage <span style=color:rgba(128,128,128,1);font-style:italic>图片<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@param <span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic>degree        <span style=color:rgba(128,128,128,1);font-style:italic>旋转角度<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@return<br><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>     <span style=color:rgba(128,128,128,1);font-style:italic>*/<br><span style=color:rgba(128,128,128,1);font-style:italic>    <span style=color:rgba(0,0,128,1);font-weight:bold>public static BufferedImage rotateImage(BufferedImage bufferedimage, <span style=color:rgba(0,0,128,1);font-weight:bold>int degree) {<br>        <span style=color:rgba(128,128,128,1);font-style:italic>// 得到图片宽度。<br><span style=color:rgba(128,128,128,1);font-style:italic>        <span style=color:rgba(0,0,128,1);font-weight:bold>int w = bufferedimage.getWidth();<br>        <span style=color:rgba(128,128,128,1);font-style:italic>// 得到图片高度。<br><span style=color:rgba(128,128,128,1);font-style:italic>        <span style=color:rgba(0,0,128,1);font-weight:bold>int h = bufferedimage.getHeight();<br>        <span style=color:rgba(128,128,128,1);font-style:italic>// 得到图片透明度。<br><span style=color:rgba(128,128,128,1);font-style:italic>        <span style=color:rgba(0,0,128,1);font-weight:bold>int type = bufferedimage.getColorModel().getTransparency();<br>        <span style=color:rgba(128,128,128,1);font-style:italic>// 空的图片。<br><span style=color:rgba(128,128,128,1);font-style:italic>        BufferedImage img;<br>        <span style=color:rgba(128,128,128,1);font-style:italic>// 空的画笔。<br><span style=color:rgba(128,128,128,1);font-style:italic>        Graphics2D graphics2d;<br>        (graphics2d = (img = <span style=color:rgba(0,0,128,1);font-weight:bold>new BufferedImage(w, h, type))<br>                .createGraphics()).setRenderingHint(<br>                RenderingHints.<span style=color:rgba(102,14,122,1);font-weight:bold;font-style:italic>KEY_INTERPOLATION,<br>                RenderingHints.<span style=color:rgba(102,14,122,1);font-weight:bold;font-style:italic>VALUE_INTERPOLATION_BILINEAR);<br>        <span style=color:rgba(128,128,128,1);font-style:italic>// 旋转，degree是整型，度数，比如垂直90度。<br><span style=color:rgba(128,128,128,1);font-style:italic>        graphics2d.rotate(Math.<span style=font-style:italic>toRadians(degree), w / <span style=color:rgba(0,0,255,1)>2, h / <span style=color:rgba(0,0,255,1)>2);<br>        <span style=color:rgba(128,128,128,1);font-style:italic>// 从bufferedimagecopy图片至img，0,0是img的坐标。<br><span style=color:rgba(128,128,128,1);font-style:italic>        graphics2d.drawImage(bufferedimage, <span style=color:rgba(0,0,255,1)>0, <span style=color:rgba(0,0,255,1)>0, <span style=color:rgba(0,0,128,1);font-weight:bold>null);<br>        graphics2d.dispose();<br>        <span style=color:rgba(128,128,128,1);font-style:italic>// 返回复制好的图片，原图片依然没有变，没有旋转，下次还可以使用。<br><span style=color:rgba(128,128,128,1);font-style:italic>        <span style=color:rgba(0,0,128,1);font-weight:bold>return img;<br>    }<br><br>    <span style=color:rgba(128,128,128,1);font-style:italic>/**<br><span style=color:rgba(128,128,128,1);font-style:italic>     * 截取视频指定帧保存为指定格式的图片（图片保存在视频同文件夹下）<br><span style=color:rgba(128,128,128,1);font-style:italic>     *<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@param <span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic>videofile  <span style=color:rgba(128,128,128,1);font-style:italic>视频地址<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@param <span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic>imgSuffix  <span style=color:rgba(128,128,128,1);font-style:italic>图片格式<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@param <span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic>indexFrame <span style=color:rgba(128,128,128,1);font-style:italic>第几帧（默认：5）<br><span style=color:rgba(128,128,128,1);font-style:italic>     * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@throws <span style=color:rgba(128,128,128,1);font-style:italic>Exception<br><span style=color:rgba(128,128,128,1);font-style:italic>     */<br><span style=color:rgba(128,128,128,1);font-style:italic>    <span style=color:rgba(0,0,128,1);font-weight:bold>public static void fetchFrame(String videofile, String imgSuffix, Integer indexFrame) <span style=color:rgba(0,0,128,1);font-weight:bold>throws Exception {<br>        <span style=color:rgba(0,0,128,1);font-weight:bold>if (indexFrame == <span style=color:rgba(0,0,128,1);font-weight:bold>null) {<br>            indexFrame = <span style=color:rgba(0,0,255,1)>5;<br>        }<br>        Integer suffixIndex = videofile.lastIndexOf(<span style=color:rgba(0,128,0,1);font-weight:bold>".");<br>        File targetFile = <span style=color:rgba(0,0,128,1);font-weight:bold>new File((suffixIndex != -<span style=color:rgba(0,0,255,1)>1 ? videofile.substring(<span style=color:rgba(0,0,255,1)>0, suffixIndex) : videofile) + imgSuffix);<br><br>        <span style=color:rgba(0,0,128,1);font-weight:bold>try (FFmpegFrameGrabber ff = <span style=color:rgba(0,0,128,1);font-weight:bold>new FFmpegFrameGrabber(videofile);<br>             OutputStream outputStream = <span style=color:rgba(0,0,128,1);font-weight:bold>new FileOutputStream(targetFile)) {<br>            ff.start();<br>            ff.setFrameNumber(indexFrame);<br>            Frame f = ff.grabImage();<br>            Java2DFrameConverter converter = <span style=color:rgba(0,0,128,1);font-weight:bold>new Java2DFrameConverter();<br>            BufferedImage fecthedImage = converter.getBufferedImage(f);<br>            ImageIO.<span style=font-style:italic>write(fecthedImage, <span style=color:rgba(0,128,0,1);font-weight:bold>"jpg", outputStream);<br>        }<br>    }<br><br><br>    <span style=color:rgba(0,0,128,1);font-weight:bold>public static void main(String[] args) {<br>        <span style=color:rgba(0,0,128,1);font-weight:bold>try {<br>            <span style=font-style:italic>fetchFrame(<span style=color:rgba(0,128,0,1);font-weight:bold>"C:<span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>Users<span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>Desktop<span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>b9aef3a28becab2e9e3c544caf70bfde.mp4", <span style=color:rgba(0,128,0,1);font-weight:bold>".jpg", <span style=color:rgba(0,0,255,1)>100);<br>            <span style=font-style:italic>buildGif(<span style=color:rgba(0,128,0,1);font-weight:bold>"C:<span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>Users<span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>Desktop<span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>b9aef3a28becab2e9e3c544caf70bfde.mp4", <span style=color:rgba(0,0,255,1)>50, <span style=color:rgba(0,0,255,1)>10, <span style=color:rgba(0,0,255,1)>3, <span style=color:rgba(0,0,255,1)>50);<br>        } <span style=color:rgba(0,0,128,1);font-weight:bold>catch (Exception e) {<br>            e.printStackTrace();<br>        }<br>    }<br>}<br><br><br><br></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
+<pre><span style=color:rgba(0,0,128,1);font-weight:bold>package com.richinfo.media.utils;<br><br><span style=color:rgba(0,0,128,1);font-weight:bold>import <span style=color:rgba(128,128,0,1)>lombok.SneakyThrows;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import org.apache.commons.io.IOUtils;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import org.bytedeco.javacpp.avcodec;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import org.bytedeco.javacv.CanvasFrame;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import org.bytedeco.javacv.FFmpegFrameGrabber;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import org.bytedeco.javacv.FFmpegFrameRecorder;<br><span style=color:rgba(0,0,128,1);font-weight:bold>import org.bytedeco.javacv.Frame;<br><br><span style=color:rgba(0,0,128,1);font-weight:bold>import javax.swing.*;<br><br><span style=color:rgba(128,128,128,1);font-style:italic>/**<br><span style=color:rgba(128,128,128,1);font-style:italic> * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@author <span style=color:rgba(128,128,128,1);font-style:italic><br><span style=color:rgba(128,128,128,1);font-style:italic> * <span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic>@create <span style=color:rgba(128,128,128,1);font-style:italic><br><span style=color:rgba(128,128,128,1);font-style:italic> */<br><span style=color:rgba(0,0,128,1);font-weight:bold>public class Test {<br><br>    <span style=color:rgba(0,0,128,1);font-weight:bold>private static boolean <span style=color:rgba(102,14,122,1);font-style:italic>isStart = <span style=color:rgba(0,0,128,1);font-weight:bold>true;<br><br>    <span style=color:rgba(128,128,0,1)>@SneakyThrows<br><span style=color:rgba(128,128,0,1)>    <span style=color:rgba(0,0,128,1);font-weight:bold>public static void main(String[] args) {<br>        <span style=font-style:italic>frameRecord(<span style=color:rgba(0,128,0,1);font-weight:bold>"C:<span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>Users<span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>Desktop<span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>b9aef3a28becab2e9e3c544caf70bfde.mp4", <span style=color:rgba(0,128,0,1);font-weight:bold>"C:<span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>Users<span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>Desktop<span style=color:rgba(0,0,128,1);font-weight:bold>\\<span style=color:rgba(0,128,0,1);font-weight:bold>b9aef3a28becab2e9e3c544caf70bf602.mp4");<br>    }<br><br>    <span style=color:rgba(0,0,128,1);font-weight:bold>public static void frameRecord(String inputFile, String outputFile)<br>            <span style=color:rgba(0,0,128,1);font-weight:bold>throws Exception, org.bytedeco.javacv.FrameRecorder.Exception {<br>        <span style=color:rgba(128,128,128,1);font-style:italic>// 获取视频源<br><span style=color:rgba(128,128,128,1);font-style:italic>        FFmpegFrameGrabber grabber = <span style=color:rgba(0,0,128,1);font-weight:bold>new FFmpegFrameGrabber(inputFile);<br>        grabber.setOption(<span style=color:rgba(0,128,0,1);font-weight:bold>"rtsp_transport", <span style=color:rgba(0,128,0,1);font-weight:bold>"tcp");<br><span style=color:rgba(128,128,128,1);font-style:italic>//        //速度<br><span style=color:rgba(128,128,128,1);font-style:italic>//        grabber.setFrameRate(30);<br><span style=color:rgba(128,128,128,1);font-style:italic>//        //码率<br><span style=color:rgba(128,128,128,1);font-style:italic>//        grabber.setVideoBitrate(3000000);<br><span style=color:rgba(128,128,128,1);font-style:italic>        // 流媒体输出地址，分辨率（长，高），是否录制音频（0:不录制/1:录制）<br><span style=color:rgba(128,128,128,1);font-style:italic>        FFmpegFrameRecorder recorder = <span style=color:rgba(0,0,128,1);font-weight:bold>new FFmpegFrameRecorder(outputFile, <span style=color:rgba(0,0,255,1)>2);<br><span style=color:rgba(128,128,128,1);font-style:italic>//        recorder.setFrameRate(30);<br><span style=color:rgba(128,128,128,1);font-style:italic>        recorder.setVideoBitrate(<span style=color:rgba(0,0,255,1)>720 * <span style=color:rgba(0,0,255,1)>576);<br>        <span style=color:rgba(128,128,128,1);font-style:italic>//编码格式<br><span style=color:rgba(128,128,128,1);font-style:italic>        recorder.setVideoCodec(avcodec.<span style=color:rgba(102,14,122,1);font-weight:bold;font-style:italic>AV_CODEC_ID_H264); <span style=color:rgba(128,128,128,1);font-style:italic>//avcodec.AV_CODEC_ID_H264  //AV_CODEC_ID_MPEG4<br><span style=color:rgba(128,128,128,1);font-style:italic>        <span style=font-style:italic>recordByFrame(grabber, recorder);<br>    }<br><br>    <span style=color:rgba(0,0,128,1);font-weight:bold>private static void recordByFrame(FFmpegFrameGrabber grabber, FFmpegFrameRecorder recorder)<br>            <span style=color:rgba(0,0,128,1);font-weight:bold>throws Exception, org.bytedeco.javacv.FrameRecorder.Exception {<br>        <span style=color:rgba(0,0,128,1);font-weight:bold>try {<span style=color:rgba(128,128,128,1);font-style:italic>// 建议在线程中使用该方法<br><span style=color:rgba(128,128,128,1);font-style:italic><br><span style=color:rgba(128,128,128,1);font-style:italic>            grabber.start();<br><span style=color:rgba(128,128,128,1);font-style:italic>//            CanvasFrame canvas = new CanvasFrame("摄像头");//新建一个窗口<br><span style=color:rgba(128,128,128,1);font-style:italic>//                 canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);<br><span style=color:rgba(128,128,128,1);font-style:italic>//            canvas.setAlwaysOnTop(true);<br><span style=color:rgba(128,128,128,1);font-style:italic>            recorder.setImageHeight(grabber.getImageHeight());<br>            recorder.setImageWidth(grabber.getImageWidth());<br>            recorder.start();<br>            <span style=color:rgba(0,0,128,1);font-weight:bold>long t1 = System.<span style=font-style:italic>currentTimeMillis();<br><br>            Frame frame = <span style=color:rgba(0,0,128,1);font-weight:bold>null;<br><br><br>            <span style=color:rgba(0,0,128,1);font-weight:bold>while (<span style=color:rgba(102,14,122,1);font-style:italic>isStart &amp;&amp; (frame = grabber.grabFrame()) != <span style=color:rgba(0,0,128,1);font-weight:bold>null) {<br>                <span style=color:rgba(0,0,128,1);font-weight:bold>long t2 = System.<span style=font-style:italic>currentTimeMillis();<br>                <span style=color:rgba(0,0,128,1);font-weight:bold>if (t2 - t1 &gt; <span style=color:rgba(0,0,255,1)>2 * <span style=color:rgba(0,0,255,1)>60 * <span style=color:rgba(0,0,255,1)>60 * <span style=color:rgba(0,0,255,1)>1000) {<br>                    <span style=color:rgba(0,0,128,1);font-weight:bold>break;<br>                } <span style=color:rgba(0,0,128,1);font-weight:bold>else {<br><span style=color:rgba(128,128,128,1);font-style:italic>//视频转音频                    grabber.grabSamples();<br><span style=color:rgba(128,128,128,1);font-style:italic>                    recorder.record(frame);<br>                    <span style=color:rgba(128,128,128,1);font-style:italic>//<span style=color:rgba(0,0,255,1);font-weight:bold;font-style:italic>TODO your work<br><span style=color:rgba(0,0,255,1);font-weight:bold;font-style:italic>                }<br>                <span style=color:rgba(128,128,128,1);font-style:italic>//canvas.showImage(grabber.grab());//获取摄像头图像并放到窗口上显示， 这里的Frame frame=grabber.grab(); frame是一帧视频图像<br><span style=color:rgba(128,128,128,1);font-style:italic>            }<br>            recorder.stop();<br>            grabber.stop();<br><br>        } <span style=color:rgba(0,0,128,1);font-weight:bold>finally {<br>            IOUtils.<span style=font-style:italic>closeQuietly(recorder);<br>            IOUtils.<span style=font-style:italic>closeQuietly(grabber);<br>        }<br>    }<br><br>}<br><br><br><strong><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(102,14,122,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,0,1)><span style=color:rgba(128,128,0,1)><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(102,14,122,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(102,14,122,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,255,1);font-style:italic><span style=color:rgba(0,0,255,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=font-style:italic><span style=color:rgba(0,0,0,1)>相关依赖：<span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(102,14,122,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,0,1)><span style=color:rgba(128,128,0,1)><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(102,14,122,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(102,14,122,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,255,1);font-style:italic><span style=color:rgba(0,0,255,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=font-style:italic><br><br><span style=color:rgba(128,128,128,1);font-style:italic>&lt;!-- 视频截图 --&gt;<br>&lt;<span style=color:rgba(0,0,128,1);font-weight:bold>dependency&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>groupId&gt;org.bytedeco&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>groupId&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>artifactId&gt;javacv-platform&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>artifactId&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>version&gt;1.4.4&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>version&gt;<br>&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>dependency&gt;<br><span style=color:rgba(128,128,128,1);font-style:italic>&lt;!-- gif --&gt;<br>&lt;<span style=color:rgba(0,0,128,1);font-weight:bold>dependency&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>groupId&gt;com.madgag&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>groupId&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>artifactId&gt;animated-gif-lib&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>artifactId&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>version&gt;1.4&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>version&gt;<br>&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>dependency&gt;<br></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></strong><span style=color:rgba(128,128,128,1);font-style:italic>&lt;!--lombok --&gt;<br>&lt;<span style=color:rgba(0,0,128,1);font-weight:bold>dependency&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>groupId&gt;org.projectlombok&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>groupId&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>artifactId&gt;lombok&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>artifactId&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>version&gt;1.16.8&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>version&gt;<br>&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>dependency&gt;<br></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
+<pre>&lt;<span style=color:rgba(0,0,128,1);font-weight:bold>dependency&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>groupId&gt;commons-io&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>groupId&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>artifactId&gt;commons-io&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>artifactId&gt;<br> &lt;<span style=color:rgba(0,0,128,1);font-weight:bold>version&gt;2.5&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>version&gt;<br>&lt;/<span style=color:rgba(0,0,128,1);font-weight:bold>dependency&gt;</span></span></span></span></span></span></span></span></pre>
+<pre><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold>&nbsp;</span></span></span></span></span></span></span></span></span></pre>
+<pre><strong><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(102,14,122,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,0,1)><span style=color:rgba(128,128,0,1)><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(0,128,0,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(102,14,122,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(102,14,122,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(0,0,128,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,255,1);font-style:italic><span style=color:rgba(0,0,255,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1)><span style=font-style:italic><span style=font-style:italic>&nbsp;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></strong></pre>
+<pre><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(102,14,122,1);font-weight:bold;font-style:italic><span style=color:rgba(102,14,122,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=font-style:italic><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(61,61,61,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-weight:bold;font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(128,128,128,1);font-style:italic><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=font-style:italic><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=font-style:italic><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,255,1)><span style=font-style:italic><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,128,1);font-weight:bold><span style=color:rgba(0,128,0,1);font-weight:bold><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,255,1)><span style=color:rgba(0,0,128,1);font-weight:bold>&nbsp;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
+</div>
+<div id=MySignature class=sf-hidden></div>
+<div class=clear></div>
+<div id=blog_post_info_block class=sf-hidden>
+ <div id=blog_post_info class=sf-hidden>
+</div>
+ 
+ 
+</div>
+ <p class=postfoot>
+ posted on 
+<span id=post-date>2019-04-02 15:47</span>&nbsp;
+<a href=https://www.cnblogs.com/afei-li/ class=sf-hidden>阿飞L号</a>&nbsp;
+阅读(<span id=post_view_count>2488</span>)&nbsp;
+评论(<span id=post_comment_count>0</span>)&nbsp;
+<a href="https://i.cnblogs.com/EditPosts.aspx?postid=10643049" rel=nofollow>编辑</a>&nbsp;
+<a href=https://www.cnblogs.com/afei-li/articles/10643049.html>收藏</a>
+ </p>
+ </div>
+</div>
+<a name=!comments></a>
+<div id=blog-comments-placeholder class=sf-hidden></div>
+<div id=comment_form class="commentform sf-hidden">
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+</div>
+ <p id=footer class=sf-hidden>
+ Powered by: 
+ 
+ 
+ 
+ 
+ Copyright © 2021 阿飞L号
+</p>
+</div>
+<div id=rightmenu>
+ 
+ <div id=blog-calendar>
+<table id=blogCalendar class=Cal title=Calendar cellspacing=0 cellpadding=0 border=0>
+ <tbody>
+ <tr>
+ <td colspan=7>
+ <table class=CalTitle cellspacing=0 border=0>
+ <tbody>
+ <tr>
+ <td class=CalNextPrev>
+ <a href=https://www.cnblogs.com/afei-li/articles/10643049.html>&lt;</a>
+ </td>
+ <td align=center>2021年3月</td>
+ <td class=CalNextPrev align=right>
+ <a href=https://www.cnblogs.com/afei-li/articles/10643049.html>&gt;</a>
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </td>
+ </tr>
+ <tr>
+ <th class=CalDayHeader abbr=日 scope=col align=center>日</th>
+ <th class=CalDayHeader abbr=一 scope=col align=center>一</th>
+ <th class=CalDayHeader abbr=二 scope=col align=center>二</th>
+ <th class=CalDayHeader abbr=三 scope=col align=center>三</th>
+ <th class=CalDayHeader abbr=四 scope=col align=center>四</th>
+ <th class=CalDayHeader abbr=五 scope=col align=center>五</th>
+ <th class=CalDayHeader abbr=六 scope=col align=center>六</th>
+ </tr>
+ <tr>
+ <td class=CalOtherMonthDay align=center>28</td>
+ <td align=center>
+ 1
+ </td>
+ <td align=center>
+ 2
+ </td>
+ <td align=center>
+ 3
+ </td>
+ <td align=center>
+ 4
+ </td>
+ <td align=center>
+ 5
+ </td>
+ <td class=CalWeekendDay align=center>
+ 6
+ </td>
+ </tr>
+ <tr>
+ <td class=CalWeekendDay align=center>
+ 7
+ </td>
+ <td align=center>
+ 8
+ </td>
+ <td align=center>
+ 9
+ </td>
+ <td class=CalTodayDay align=center>
+ 10
+ </td>
+ <td align=center>
+ 11
+ </td>
+ <td align=center>
+ 12
+ </td>
+ <td class=CalWeekendDay align=center>
+ 13
+ </td>
+ </tr>
+ <tr>
+ <td class=CalWeekendDay align=center>
+ 14
+ </td>
+ <td align=center>
+ 15
+ </td>
+ <td align=center>
+ 16
+ </td>
+ <td align=center>
+ 17
+ </td>
+ <td align=center>
+ 18
+ </td>
+ <td align=center>
+ 19
+ </td>
+ <td class=CalWeekendDay align=center>
+ 20
+ </td>
+ </tr>
+ <tr>
+ <td class=CalWeekendDay align=center>
+ 21
+ </td>
+ <td align=center>
+ 22
+ </td>
+ <td align=center>
+ 23
+ </td>
+ <td align=center>
+ 24
+ </td>
+ <td align=center>
+ 25
+ </td>
+ <td align=center>
+ 26
+ </td>
+ <td class=CalWeekendDay align=center>
+ 27
+ </td>
+ </tr>
+ <tr>
+ <td class=CalWeekendDay align=center>
+ 28
+ </td>
+ <td align=center>
+ 29
+ </td>
+ <td align=center>
+ 30
+ </td>
+ <td align=center>
+ 31
+ </td>
+ <td class=CalOtherMonthDay align=center>
+ 1
+ </td>
+ <td class=CalOtherMonthDay align=center>
+ 2
+ </td>
+ <td class=CalOtherMonthDay align=center>
+ 3
+ </td>
+ </tr>
+ <tr>
+ <td class=CalOtherMonthDay align=center>
+ 4
+ </td>
+ <td class=CalOtherMonthDay align=center>
+ 5
+ </td>
+ <td class=CalOtherMonthDay align=center>
+ 6
+ </td>
+ <td class=CalOtherMonthDay align=center>
+ 7
+ </td>
+ <td class=CalOtherMonthDay align=center>
+ 8
+ </td>
+ <td class=CalOtherMonthDay align=center>
+ 9
+ </td>
+ <td class=CalOtherMonthDay align=center>
+ 10
+ </td>
+ </tr>
+ </tbody>
+</table></div>
+ 
+<h3>导航</h3>
+<ul>
+ <li><a id=blog_nav_sitehome class=menu href=https://www.cnblogs.com/>
+博客园</a>
+</li>
+ <li>
+<a id=blog_nav_myhome class=menu href=https://www.cnblogs.com/afei-li/>
+首页</a>
+</li>
+ <li>
+<a id=blog_nav_newpost class=menu href="https://i.cnblogs.com/EditPosts.aspx?opt=1">
+新随笔</a>
+</li>
+ <li>
+<a id=blog_nav_contact class=menu href=https://msg.cnblogs.com/send/%E9%98%BF%E9%A3%9EL%E5%8F%B7>
+联系</a></li>
+ <li>
+<a id=blog_nav_rss class=menu href=https://www.cnblogs.com/afei-li/articles/10643049.html data-rss=https://www.cnblogs.com/afei-li/rss/>
+订阅</a>
+<a id=blog_nav_rss_image href=https://www.cnblogs.com/afei-li/rss/ class=sf-hidden>
+ 
+</a></li>
+ <li>
+<a id=blog_nav_admin class=menu href=https://i.cnblogs.com/>
+管理</a>
+</li>
+</ul>
+ 
+<h3>统计</h3>
+<ul>
+ <li>随笔 - 1</li>
+ <li>文章 - 4</li>
+ <li>评论 - 0</li>
+ <li>阅读 - 
+<span title="总阅读数: 2658">
+2658</span></li>
+</ul>
+ <div id=sidebar_news class=newsItem>
+<h3>公告</h3>
+<div id=blog-news>
+ 
+ <div id=profile_block>
+ 昵称：
+ <a href=https://home.cnblogs.com/u/afei-li/>
+ 阿飞L号
+ </a>
+ <br>
+ 园龄：
+ <a href=https://home.cnblogs.com/u/afei-li/ title=入园时间：2019-03-22>
+ 1年11个月
+ </a>
+ <br>
+ 粉丝：
+ <a href=https://home.cnblogs.com/u/afei-li/followers/>
+ 0
+ </a>
+ <br>
+ 关注：
+ <a href=https://home.cnblogs.com/u/afei-li/followees/>
+ 1
+ </a>
+ <div id=p_b_follow>
+<a href=https://www.cnblogs.com/afei-li/articles/10643049.html>+加关注</a></div>
+ 
+ </div>
+</div>
+</div>
+<div id=sidebar_c3 class=sf-hidden></div>
+ <div id=blog-sidecolumn>
+<div id=sidebar_search class=sidebar-block>
+ <div id=sidebar_search class=mySearch>
+ <h3 class=catListTitle>搜索</h3>
+ <div id=sidebar_search_box>
+ <div id=widget_my_zzk class=div_my_zzk>
+ <input type=text id=q class=input_my_zzk value>&nbsp;<input type=button value=找找看 id=btnZzk class=btn_my_zzk>
+ </div>
+ <div id=widget_my_google class=div_my_zzk>
+ <input type=text name=google_q id=google_q class=input_my_zzk value>&nbsp;<input type=button value=谷歌搜索 class=btn_my_zzk>
+ </div>
+ </div>
+ </div>
+</div>
+<div id=sidebar_shortcut class=sidebar-block>
+<h3 class=catListTitle>
+常用链接
+</h3>
+<ul>
+ 
+<li><a href=https://www.cnblogs.com/afei-li/p/ title=我的博客的随笔列表>我的随笔</a></li>
+<li><a href=https://www.cnblogs.com/afei-li/MyComments.html title=我的发表过的评论列表>我的评论</a></li>
+<li><a href=https://www.cnblogs.com/afei-li/OtherPosts.html title=我评论过的随笔列表>我的参与</a></li>
+<li><a href=https://www.cnblogs.com/afei-li/RecentComments.html title=我的博客的评论列表>最新评论</a></li>
+<li><a href=https://www.cnblogs.com/afei-li/tag/ title=我的博客的标签列表>我的标签</a></li>
+</ul>
+</div>
+<div id=sidebar_toptags class=sidebar-block></div>
+<div id=sidebar_categories>
+ <h3>
+ 
+随笔档案
+ </h3>
+ <ul>
+ <li data-category-list-item-visible=true style=display:block>
+ 
+<a href=https://www.cnblogs.com/afei-li/archive/2019/04.html rel target>
+ 2019年4月(1)
+</a>
+ 
+ </li>
+ 
+ 
+ </ul>
+</div>
+<div id=sidebar_recentcomments class=sidebar-block></div>
+<div id=sidebar_topviewedposts class=sidebar-block>
+<div id=topview_posts_wrap>
+ <h3 class=catListTitle>阅读排行榜</h3>
+ <div id=TopViewPostsBlock>
+ <ul style=word-break:break-all>
+ <li>
+ <a href=https://www.cnblogs.com/afei-li/p/10643049.html>
+ 1. javaCV - 视频截帧，清晰度调整，转gif，视频转音频(2487)
+ </a>
+ </li>
+ </ul>
+ </div>
+</div></div>
+<div id=sidebar_topcommentedposts class=sidebar-block></div>
+<div id=sidebar_topdiggedposts class=sidebar-block>
+<div id=topdigg_posts_wrap>
+ <div class=catListView>
+ <h3 class=catListTitle>推荐排行榜</h3>
+ <div id=TopDiggPostsBlock>
+ <ul style=word-break:break-all>
+ <li>
+ <a href=https://www.cnblogs.com/afei-li/p/10643049.html>
+ 1. javaCV - 视频截帧，清晰度调整，转gif，视频转音频(1)
+ </a>
+ </li>
+ </ul>
+ </div>
+ </div>
+</div></div></div>
+ 
+ 
+</div>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<style id=ag-preview-style-id nonce class=sf-hidden>a:nth-child(2){display:none!important}</style><style id=ag-hide-elements-style-id nonce class=sf-hidden>a:nth-child(2){display:none!important}</style>
